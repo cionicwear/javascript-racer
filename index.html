@@ -741,8 +741,9 @@
     }
 
     downloadButton.onclick = function() {
-        let fn = Math.random().toString(36).substring(2, 8);
-        canvasRecorder.download(fn); 
+      const now = new Date();
+      let fn = `racing-${now.toISOString().split('.')[0]}`;
+      canvasRecorder.download(fn); 
     }
 
 
