@@ -3,7 +3,7 @@
 <html>
 <head>
   <title>Javascript Racer</title>
-  <base href="../../static/racing/"> 
+  <base href="/racer/0/">
 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <link href="common.css" rel="stylesheet" type="text/css" />
@@ -87,8 +87,8 @@
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script src="cionic.min.js"></script>
-  <script src="jquery-3.1.0.js"></script>
+  <script src="http://app.cionic.com/cionic/32/cionic.min.js"></script>
+  <script src="http://app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
   <script>
 
     var fps            = 60;                      // how many 'update' frames per second
@@ -134,6 +134,7 @@
     var totalCars      = 200;                     // total number of cars on the road
     var currentLapTime = 0;                       // current lap time
     var lastLapTime    = null;                    // last lap time
+    let startTime      = new Date().getTime();
 
     var keyLeft        = false;
     var keyRight       = false;
@@ -216,8 +217,20 @@
 
       if (position > playerZ) {
         if (currentLapTime && (startPosition < playerZ)) {
+          // send metrics
+          if (isRecording) {
+            let endTime = new Date().getTime();
+            const metric = {
+              startTime,
+              endTime,
+              lapTime: currentLapTime
+            };
+            cionic.sendJSON('metrics', metric);
+          }
+
           lastLapTime    = currentLapTime;
           currentLapTime = 0;
+          startTime = new Date().getTime();
           if (lastLapTime <= Util.toFloat(Dom.storage.fast_lap_time)) {
             Dom.storage.fast_lap_time = lastLapTime;
             updateHud('fast_lap_time', formatTime(lastLapTime));
@@ -695,23 +708,6 @@
             logDiv.innerHTML += '<div class="'+cls+'">&gt;&nbsp;' + msg + '</div>';
             logDiv.scrollTop = logDiv.scrollHeight;
     }});
-
-    // add Cionic listeners
-    cionic.Stream.registerListener('lPress', function(isPressed) {
-        isPressed === 'OFF' ? keyLeft = false : keyLeft = true;
-    });
-
-    cionic.Stream.registerListener('rPress', function(isPressed) {
-        isPressed === 'OFF' ? keyRight = false : keyRight = true;
-    });
-
-    cionic.Stream.registerListener('uPress', function(isPressed) {
-        isPressed === 'OFF' ? keyFaster = false : keyFaster = true;
-    });
-
-    cionic.Stream.registerListener('dPress', function(isPressed) {
-        isPressed === 'OFF' ? keySlower = false : keySlower = true;
-    });
     
     // connect to the gateway
     document.getElementById('cionic-connect').onclick = function () {
@@ -724,27 +720,68 @@
     const recordButton = document.querySelector('button#record');
     const downloadButton = document.querySelector('button#download');
 
-    const canvasRecorder = new cionicjs.CanvasRecorder({canvas, recordButton, downloadButton});
+    const canvasRecorder = new cionicjs.CanvasRecorder({
+      canvas,
+      onStop: () => {
+        const blob = new Blob(canvasRecorder._recordedBlobs, {
+          type: 'video/webm'
+        });
+        cionic.sendBinary(blob);
+      }
+    });
+
+    function startRecording() {
+      canvasRecorder.startRecording();
+      recordButton.textContent = 'Stop Recording'
+      downloadButton.disabled = true;
+      isRecording = true;
+	  }
+
+	function stopRecording() {
+		canvasRecorder.stopRecording();
+		recordButton.textContent = 'Start Recording';
+		downloadButton.disabled = false;
+		isRecording = false;
+	}
 
     recordButton.onclick = function() {
-        if (!isRecording) {
-            canvasRecorder.startRecording();
-            recordButton.textContent = 'Stop Recording'
-            downloadButton.disabled = true;
-            isRecording = true;
-        } else {
-            canvasRecorder.stopRecording();
-            recordButton.textContent = 'Start Recording';
-            downloadButton.disabled = false;
-            isRecording = false;
-        }
-    }
+		if (!isRecording) {
+			startRecording();
+		} else {
+			stopRecording();
+		}
+	}
 
     downloadButton.onclick = function() {
       const now = new Date();
       let fn = `racing-${now.toISOString().split('.')[0]}`;
       canvasRecorder.download(fn); 
     }
+
+  // add Cionic listeners
+  cionic.addListener('lPress', function(isPressed) {
+    isPressed === 'OFF' ? keyLeft = false : keyLeft = true;
+  });
+
+  cionic.addListener('rPress', function(isPressed) {
+      isPressed === 'OFF' ? keyRight = false : keyRight = true;
+  });
+
+  cionic.addListener('uPress', function(isPressed) {
+      isPressed === 'OFF' ? keyFaster = false : keyFaster = true;
+  });
+
+  cionic.addListener('dPress', function(isPressed) {
+      isPressed === 'OFF' ? keySlower = false : keySlower = true;
+  });
+
+  cionic.addListener('record', function(action) {
+    if (action == 'start') {
+      startRecording();
+    } else if (action == 'stop') {
+      stopRecording();
+    }
+  }.bind(this));
 
 
     $(document).ready(function() {
