@@ -3,7 +3,7 @@
 <html>
 <head>
   <title>Javascript Racer</title>
-  <base href="/racer/0/">
+  <base href="/racer/2/">
 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <link href="common.css" rel="stylesheet" type="text/css" />
@@ -87,7 +87,7 @@
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script src="http://app.cionic.com/cionic/32/cionic.min.js"></script>
+  <script src="http://app.cionic.com/cionic/55/cionic.min.js"></script>
   <script src="http://app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
   <script>
 
@@ -729,6 +729,12 @@
         cionic.sendBinary(blob);
       }
     });
+
+    // hide buttons if cannot record (ie not on Chrome or Firefox)
+    if (!canvasRecorder.canRecord) {
+      $('#record').hide();
+      $('#download').hide();
+    }
 
     function startRecording() {
       canvasRecorder.startRecording();
