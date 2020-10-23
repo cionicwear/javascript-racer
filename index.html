@@ -3,7 +3,11 @@
 <html>
 <head>
   <title>Javascript Racer</title>
-  <base href="/racer/3/">
+  <script type="text/javascript">
+    if (document.location.host.includes('app.cionic.com')) {
+        document.write("<base href='/racer/3/>'");
+    }
+</script>
 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <link href="common.css" rel="stylesheet" type="text/css" />
@@ -87,7 +91,7 @@
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script src="http://app.cionic.com/cionic/55/cionic.min.js"></script>
+  <script src="http://app.cionic.com/cionic/81/cionic.min.js"></script>
   <script src="http://app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
   <script>
 
@@ -765,20 +769,39 @@
     }
 
   // add Cionic listeners
-  cionic.addListener('37', function(isPressed) {
-    isPressed === 'OFF' ? keyLeft = false : keyLeft = true;
+  cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.QUAT_GW, (data) => {
+        // we don't do anything with this data so ignore it
   });
-
-  cionic.addListener('39', function(isPressed) {
-      isPressed === 'OFF' ? keyRight = false : keyRight = true;
+  cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.ADC_GW, (data) => {
+        // we don't do anything with this data so ignore it
   });
+  cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.CMD_GW, function (data) {
+    var cmdJson = JSON.parse(data);
+    var cmd = cmdJson['cmd'];
+    console.log(cmdJson);
 
-  cionic.addListener('38', function(isPressed) {
-      isPressed === 'OFF' ? keyFaster = false : keyFaster = true;
-  });
+    if (cmd === 'monitorkey') {
+        if (cmdJson.hasOwnProperty('37')) {
+            var isPressed = cmdJson['37'];
+            isPressed === 'OFF' ? keyLeft = false : keyLeft = true;
+        }
 
-  cionic.addListener('40', function(isPressed) {
-      isPressed === 'OFF' ? keySlower = false : keySlower = true;
+        else if (cmdJson.hasOwnProperty('39')) {
+            var isPressed = cmdJson['39'];
+            isPressed === 'OFF' ? keyRight = false : keyRight = true;
+        }
+
+        else if (cmdJson.hasOwnProperty('40')) {
+            var isPressed = cmdJson['40']
+            isPressed === 'OFF' ? keyFaster = false : keyFaster = true;
+            console.log(keyFaster);
+        }
+
+        else if (cmdJson.hasOwnProperty('38')) {
+            var isPressed = cmdJson['38'];
+            isPressed === 'OFF' ? keySlower = false : keySlower = true;
+        }
+    }
   });
 
   cionic.addListener('record', function(action) {
@@ -791,7 +814,9 @@
 
 
     $(document).ready(function() {
-      const monitorAPI = new cionicjs.MonitorAPI({});
+      const monitorAPI = new cionicjs.MonitorAPI({
+        verbose: true
+      });
       monitorAPI.addPlayer(cionic);
       monitorAPI.main()
     });
