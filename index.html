@@ -84,8 +84,6 @@
     <div><h1 class="codeText" id="code">fetching code </h1></div>
     <button id="record">Record</button>
     <button id="download">Download</button>
-    <input type="text" name="host" id="host" style="width:150px" value="localhost:8080"/>
-    <input type="button" id="cionic-connect" value="Connect"/>
     <div id="log"></div>
   </div>
 
@@ -712,12 +710,6 @@
             logDiv.innerHTML += '<div class="'+cls+'">&gt;&nbsp;' + msg + '</div>';
             logDiv.scrollTop = logDiv.scrollHeight;
     }});
-    
-    // connect to the gateway
-    document.getElementById('cionic-connect').onclick = function () {
-        let host = document.getElementById('host').value;
-        cionic.Stream.socket(host);
-    };
 
     // record the canvas
     let isRecording = false;
