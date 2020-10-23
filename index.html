@@ -7,7 +7,7 @@
     if (document.location.host.includes('app.cionic.com')) {
         document.write("<base href='/racer/4/>'");
     }
-</script>
+  </script>
 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <link href="common.css" rel="stylesheet" type="text/css" />
@@ -778,7 +778,6 @@
   cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.CMD_GW, function (data) {
     var cmdJson = JSON.parse(data);
     var cmd = cmdJson['cmd'];
-    console.log(cmdJson);
 
     if (cmd === 'monitorkey') {
         if (cmdJson.hasOwnProperty('37')) {
