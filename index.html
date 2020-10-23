@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/4/>'");
+        document.write("<base href='/racer/5/>'");
     }
   </script>
 
@@ -794,14 +794,14 @@
         }
     }
   });
-
-  cionic.addListener('record', function(action) {
-    if (action == 'start') {
-      startRecording();
-    } else if (action == 'stop') {
-      stopRecording();
-    }
-  }.bind(this));
+  // not implemented yet in WebRTC
+  // cionic.addListener('record', function(action) {
+  //   if (action == 'start') {
+  //     startRecording();
+  //   } else if (action == 'stop') {
+  //     stopRecording();
+  //   }
+  // }.bind(this));
 
 
     $(document).ready(function() {
