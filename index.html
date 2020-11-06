@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/5/>'");
+        document.write("<base href='/racer/8/>'");
     }
   </script>
 
@@ -89,8 +89,8 @@
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script src="http://app.cionic.com/cionic/81/cionic.min.js"></script>
-  <script src="http://app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
+  <script src="//app.cionic.com/cionic/81/cionic.min.js"></script>
+  <script src="//app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
   <script>
 
     var fps            = 60;                      // how many 'update' frames per second
@@ -770,6 +770,7 @@
   cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.CMD_GW, function (data) {
     var cmdJson = JSON.parse(data);
     var cmd = cmdJson['cmd'];
+    console.log(cmdJson);
 
     if (cmd === 'monitorkey') {
         if (cmdJson.hasOwnProperty('37')) {
@@ -814,6 +815,5 @@
     //=========================================================================
 
   </script>
-
 </body> 
 </html>
