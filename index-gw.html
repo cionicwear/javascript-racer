@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/9/>'");
+        document.write("<base href='/racer/14/>'");
     }
   </script>
 
@@ -61,14 +61,14 @@
     </tr>
   </table>
 
-  <div id="racer">
-    <div id="hud">
+  <div id="racer-gw">
+    <div id="hud-gw">
       <span id="speed"            class="hud"><span id="speed_value" class="value">0</span> mph</span>
       <span id="current_lap_time" class="hud">Time: <span id="current_lap_time_value" class="value">0.0</span></span> 
-      <span id="last_lap_time"    class="hud">Last Lap: <span id="last_lap_time_value" class="value">0.0</span></span>
-      <span id="fast_lap_time"    class="hud">Fastest Lap: <span id="fast_lap_time_value" class="value">0.0</span></span>
+      <!-- <span id="last_lap_time"    class="hud">Last Lap: <span id="last_lap_time_value" class="value">0.0</span></span> -->
+      <span id="fast_lap_time"    class="hud">Fastest: <span id="fast_lap_time_value" class="value">0.0</span></span>
     </div>
-    <canvas id="canvas">
+    <canvas id="canvas-gw">
       Sorry, this example cannot be run because your browser does not support the &lt;canvas&gt; element
     </canvas>
     Loading...
@@ -79,13 +79,6 @@
     <source src="music/racer.mp3">
   </audio>
   <span id="mute"></span>
-
-  <div id="cionic-container">
-    <div><h1 class="codeText" id="code">fetching code </h1></div>
-    <button id="record">Record</button>
-    <button id="download">Download</button>
-    <div id="log"></div>
-  </div>
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
@@ -108,12 +101,12 @@
     var segments       = [];                      // array of road segments
     var cars           = [];                      // array of cars on the road
     var stats          = Game.stats('fps');       // mr.doobs FPS counter
-    var canvas         = Dom.get('canvas');       // our canvas...
+    var canvas         = Dom.get('canvas-gw');       // our canvas...
     var ctx            = canvas.getContext('2d'); // ...and its drawing context
     var background     = null;                    // our background image (loaded below)
     var sprites        = null;                    // our spritesheet (loaded below)
     var resolution     = null;                    // scaling factor to provide resolution independence (computed)
-    var roadWidth      = 2000;                    // actually half the roads width, easier math if the road spans from -roadWidth to +roadWidth
+    var roadWidth      = 1000;                    // actually half the roads width, easier math if the road spans from -roadWidth to +roadWidth
     var segmentLength  = 200;                     // length of a single segment
     var rumbleLength   = 3;                       // number of segments per red/white rumble strip
     var trackLength    = null;                    // z length of entire track (computed)
@@ -804,6 +797,10 @@
       });
       monitorAPI.addPlayer(window.cionic);
       monitorAPI.main()
+
+      // hide elements if on mobile
+        $('#controls').css('display', 'none');
+        $('#mute').css('display', 'none');
     });
     //=========================================================================
 
