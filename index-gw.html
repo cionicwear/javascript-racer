@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/14/>'");
+        document.write("<base href='/racer/16/>'");
     }
   </script>
 
@@ -13,7 +13,7 @@
   <link href="common.css" rel="stylesheet" type="text/css" />
 </head> 
 
-<body> 
+<body id="body-gw"> 
 
   <table id="controls">
     <tr><td id="fps" colspan="2" align="right"></td></tr>
@@ -65,7 +65,7 @@
     <div id="hud-gw">
       <span id="speed"            class="hud"><span id="speed_value" class="value">0</span> mph</span>
       <span id="current_lap_time" class="hud">Time: <span id="current_lap_time_value" class="value">0.0</span></span> 
-      <!-- <span id="last_lap_time"    class="hud">Last Lap: <span id="last_lap_time_value" class="value">0.0</span></span> -->
+      <span id="last_lap_time"    class="hud">Last Lap: <span id="last_lap_time_value" class="value">0.0</span></span>
       <span id="fast_lap_time"    class="hud">Fastest: <span id="fast_lap_time_value" class="value">0.0</span></span>
     </div>
     <canvas id="canvas-gw">
