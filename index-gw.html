@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/16/>'");
+        document.write("<base href='/racer/17/>'");
     }
   </script>
 
@@ -74,6 +74,10 @@
     Loading...
   </div>
 
+  <div id="cionic-container">
+    <div id='protoStartButton'>Start Recording</div>
+  </div>
+
   <audio id='music'>
     <source src="music/racer.ogg">
     <source src="music/racer.mp3">
@@ -82,7 +86,7 @@
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script src="https://app.cionic.com/cionic/90/cionic.min.js"></script>
+  <script src="https://app.cionic.com/cionic/108/cionic.min.js"></script>
   <script src="https://app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
   <script>
 
@@ -753,6 +757,16 @@
   //     canvasRecorder.download(fn); 
   //   }
 
+  let recStarted = false;
+  function startOrStopProtocol() {
+    if (!recStarted) {
+        cionicjs.GatewayUtils.startProtocol();
+    } else {
+        cionicjs.GatewayUtils.stopProtocol();
+        $('#protoStartButton').html('Start Protocol');
+    }
+  }
+
   window.cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.CMD_GW, function (data) {
     var cmdJson = JSON.parse(data);
     var cmd = cmdJson['cmd'];
@@ -780,6 +794,44 @@
             isPressed === 'OFF' ? keySlower = false : keySlower = true;
         }
     }
+    else if (cmd === 'recstart') {
+      const status = cmdJson['status'];
+      
+      // recording has started
+      if (status === true) {
+        $('#protoStartButton').html('End Recording');
+        recStarted = true;
+      }
+    }
+    else if (cmd === 'recstop') {
+      // recording has stopped
+      recStarted = false;
+    }
+    else if (cmd === 'remstate') {
+      const availability = cmdJson['state_rec_availability'];
+      if (availability === true) {
+        $('#protoStartButton').removeClass("disabled");
+      } else {
+        $('#protoStartButton').addClass("disabled");
+      }
+    }
+    else if (cmd === 'remerror') {
+      const code = cmdJson['code'];
+      if (code === 2) {
+        const availability = cmdJson['state_rec_availability'];
+        if (availability === false && recStarted) {
+              // stop the recording, we shouldn't record anymore
+            cionicjs.GatewayUtils.stopProtocol();
+            $('#protoStartButton').addClass("disabled");
+        }
+        else if (availability === false) {
+            $('#protoStartButton').addClass("disabled");
+        }
+        else if (availability === true) {
+            $('#protoStartButton').removeClass("disabled");
+        }
+      }
+    }
   });
   // not implemented yet in WebRTC
   // cionic.addListener('record', function(action) {
@@ -797,6 +849,11 @@
       });
       monitorAPI.addPlayer(window.cionic);
       monitorAPI.main()
+
+      document.getElementById('protoStartButton').addEventListener('click', startOrStopProtocol);
+
+      // see if we can record / update button style accordingly
+      cionicjs.GatewayUtils.checkRecordAvailability();
 
       // hide elements if on mobile
         $('#controls').css('display', 'none');
