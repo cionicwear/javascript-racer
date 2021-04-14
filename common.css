@@ -14,6 +14,7 @@ body          { font-family: Arial, Helvetica, sans-serif; }
 #stats        { border: 2px solid black; }
 #controls     { width: 28em; float: left; padding: 1em; font-size: 0.7em; }
 #controls th  { text-align: right; vertical-align: middle; }
+#body-gw #controls, #body-gw #mute {display: none}
 #instructions { clear: left; float: left; width: 17em; padding: 1em; border: 1px solid black; box-shadow: 0 0 5px black; }
 #racer        { position: relative; z-index: 0; width: 640px; height: 480px; margin-left: 20em; border: 2px solid black; }
 #canvas       { position: absolute; z-index: 0; width: 640px; height: 480px; z-index: 0; background-color: #72D7EE; }
@@ -48,30 +49,61 @@ body          { font-family: Arial, Helvetica, sans-serif; }
 
 #cionic-container {
 	position: absolute;
-	right: 5rem;
-	bottom: 5rem;
-	padding: 1rem;
+	right: 3rem;
+	bottom: 3rem;
 }
 
-#protoStartButton.disabled {
+#protoStartButton.disabled, #calibrate-button.disabled {
     background-color: #CCC;
     color: gray;
 }
 
 #protoStartButton {
     border: 1px solid #ddd;
-    background-color: #f0f0f0;
-    color: black;
     text-align: center;
-    padding: 0.2rem;
 }
 
-#protoStartButton:hover {
-    background-color: #e5e5e5;    
+#protoStartButton:active, #calibrate-button:active, #camera-container:active {
+	transform: scale(1.1);
+	transition: .1s;
 }
 
-#protoStartButton:active {
-    background-color: #ccc;
+#camera-container {
+	position: absolute;
+	left: 3rem;
+	bottom: 3rem;
+	background:#e64980;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	height: 5rem;
+	border-radius: 10%;
+	display: flex;
+	justify-content: center;
+}
+
+#camera-button {
+	height: 4rem;
+	width: 4rem;
+	margin: auto;
+}
+
+#calibrate-container {
+	position: absolute;
+	left: 50%;
+	transform: translate(-50%);
+	bottom: 3rem;
+}
+
+.btn {
+	background-color: #e64980;
+	color: #ffffff;
+	text-align: center;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	height: 5rem;
+	border-radius: 10%;
+	line-height: 80px;
+	font-size: 1.25rem;
 }
 
 #log {

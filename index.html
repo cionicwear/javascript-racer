@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/9/>'");
+        document.write("<base href='/racer/20/>'");
     }
   </script>
 
@@ -13,7 +13,7 @@
   <link href="common.css" rel="stylesheet" type="text/css" />
 </head> 
 
-<body> 
+<body id="body-gw"> 
 
   <table id="controls">
     <tr><td id="fps" colspan="2" align="right"></td></tr>
@@ -61,17 +61,27 @@
     </tr>
   </table>
 
-  <div id="racer">
-    <div id="hud">
+  <div id="racer-gw">
+    <div id="hud-gw">
       <span id="speed"            class="hud"><span id="speed_value" class="value">0</span> mph</span>
       <span id="current_lap_time" class="hud">Time: <span id="current_lap_time_value" class="value">0.0</span></span> 
       <span id="last_lap_time"    class="hud">Last Lap: <span id="last_lap_time_value" class="value">0.0</span></span>
-      <span id="fast_lap_time"    class="hud">Fastest Lap: <span id="fast_lap_time_value" class="value">0.0</span></span>
+      <span id="fast_lap_time"    class="hud">Fastest: <span id="fast_lap_time_value" class="value">0.0</span></span>
     </div>
-    <canvas id="canvas">
+    <canvas id="canvas-gw">
       Sorry, this example cannot be run because your browser does not support the &lt;canvas&gt; element
     </canvas>
     Loading...
+  </div>
+
+  <div id="cionic-container">
+    <div id='protoStartButton' class="btn">Start</div>
+  </div>
+  <div id='calibrate-container'>
+    <div id='calibrate-button' class="btn">Calibrate</div>
+  </div>
+  <div id='camera-container'>
+      <img id='camera-button' src='assets/camera.svg'></button>
   </div>
 
   <audio id='music'>
@@ -80,16 +90,9 @@
   </audio>
   <span id="mute"></span>
 
-  <div id="cionic-container">
-    <div><h1 class="codeText" id="code">fetching code </h1></div>
-    <button id="record">Record</button>
-    <button id="download">Download</button>
-    <div id="log"></div>
-  </div>
-
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script src="https://app.cionic.com/cionic/90/cionic.min.js"></script>
+  <script src="https://app.cionic.com/cionic/116/cionic.min.js"></script>
   <script src="https://app.cionic.com/cionic/0/jquery-3.1.0.js"></script>
   <script>
 
@@ -108,12 +111,12 @@
     var segments       = [];                      // array of road segments
     var cars           = [];                      // array of cars on the road
     var stats          = Game.stats('fps');       // mr.doobs FPS counter
-    var canvas         = Dom.get('canvas');       // our canvas...
+    var canvas         = Dom.get('canvas-gw');       // our canvas...
     var ctx            = canvas.getContext('2d'); // ...and its drawing context
     var background     = null;                    // our background image (loaded below)
     var sprites        = null;                    // our spritesheet (loaded below)
     var resolution     = null;                    // scaling factor to provide resolution independence (computed)
-    var roadWidth      = 2000;                    // actually half the roads width, easier math if the road spans from -roadWidth to +roadWidth
+    var roadWidth      = 1000;                    // actually half the roads width, easier math if the road spans from -roadWidth to +roadWidth
     var segmentLength  = 200;                     // length of a single segment
     var rumbleLength   = 3;                       // number of segments per red/white rumble strip
     var trackLength    = null;                    // z length of entire track (computed)
@@ -760,6 +763,16 @@
   //     canvasRecorder.download(fn); 
   //   }
 
+  let recStarted = false;
+  function startOrStopProtocol() {
+    if (!recStarted) {
+        cionicjs.GatewayUtils.startProtocol();
+    } else {
+        cionicjs.GatewayUtils.stopProtocol();
+        $('#protoStartButton').html('Start');
+    }
+  }
+
   window.cionic.registerWebRTCHandler(cionicjs.DATA_TRACKS.CMD_GW, function (data) {
     var cmdJson = JSON.parse(data);
     var cmd = cmdJson['cmd'];
@@ -787,6 +800,49 @@
             isPressed === 'OFF' ? keySlower = false : keySlower = true;
         }
     }
+    else if (cmd === 'recstart') {
+      const status = cmdJson['status'];
+      
+      // recording has started
+      if (status === true) {
+        $('#protoStartButton').html('Stop');
+        recStarted = true;
+
+        // hide camera and calibrate button
+        $('#camera-container').hide();
+        $('#calibrate-container').hide();
+      }
+    }
+    else if (cmd === 'recstop') {
+      // recording has stopped
+      recStarted = false;
+    }
+    else if (cmd === 'remstate') {
+      handleRemstate(cmdJson);
+    }
+    else if (cmd === 'calinteractive') {
+		  cionicjs.GatewayUtils.sendCAppCommand( { "cmd": "remstate" } );
+	  }
+    else if (cmd === 'remerror') {
+      const code = cmdJson['code'];
+      if (code === 2) {
+        const availability = cmdJson['state_rec_availability'];
+        if (availability === false && recStarted) {
+              // stop the recording, we shouldn't record anymore
+            cionicjs.GatewayUtils.stopProtocol();
+            $('#protoStartButton').addClass("disabled");
+            $('#calibrate-button').addClass("disabled");
+        }
+        else if (availability === false) {
+            $('#protoStartButton').addClass("disabled");
+            $('#calibrate-button').addClass("disabled");
+        }
+        else if (availability === true) {
+            $('#protoStartButton').removeClass("disabled");
+            $('#calibrate-button').removeClass("disabled");
+        }
+      }
+    }
   });
   // not implemented yet in WebRTC
   // cionic.addListener('record', function(action) {
@@ -797,14 +853,67 @@
   //   }
   // }.bind(this));
 
+let cameraEnabled = false;
+enableOrDisableCamera = () => {
+	if (cameraEnabled) {
+		$('#camera-button').attr("src", "./assets/camera.svg");
+		cionicjs.GatewayUtils.setCameraState( cionicjs.CAMERA_STATES.OFF );
+	} else {
+		$('#camera-button').attr("src", "./assets/camera-off.svg");
+		cionicjs.GatewayUtils.setCameraState( cionicjs.CAMERA_STATES.ON  );
+	}
+	cameraEnabled = !cameraEnabled;
+}
 
-    $(document).ready(function() {
-      const monitorAPI = new cionicjs.MonitorAPI({
-        verbose: true
-      });
-      monitorAPI.addPlayer(window.cionic);
-      monitorAPI.main()
-    });
+let needsCalibration = false;
+launchCalibration = () => {
+	// TODO: use cjs wrapper function once we have a better understanding of the CApp cal flow
+	const payload = { "cmd": "calinteractive" };
+	cionicjs.GatewayUtils.sendCAppCommand(payload);
+}
+
+handleRemstate = (cmdJson) => {
+	// see if a hub is connected / able to record
+	const availability = cmdJson['state_rec_availability'];
+	if (availability === true) {
+		$('#protoStartButton').removeClass("disabled");
+		$('#calibrate-button').removeClass("disabled");
+	} else {
+		$('#protoStartButton').addClass("disabled");
+		$('#calibrate-button').addClass("disabled");
+	}
+
+	// check calibration status and update UI
+	needsCalibration = (cmdJson['state_imu_calibrated'] === false);
+	if (needsCalibration) {
+		$('#calibrate-button').html('Calibrate (!)');
+	}
+	else {
+		$('#calibrate-button').html('Calibrate');
+	}
+
+	// check camera state and update UI
+	const cameraState = cmdJson['state_camera'];
+	if (cameraState === cionicjs.CAMERA_STATES.ON || cameraState === cionicjs.CAMERA_STATES.FRONT || cameraState === cionicjs.CAMERA_STATES.BACK) {
+		cameraEnabled = true;
+		$('#camera-button').attr("src", "./assets/camera-off.svg");
+	}
+}
+
+$(document).ready(function() {
+  const monitorAPI = new cionicjs.MonitorAPI({
+    verbose: true
+  });
+  monitorAPI.addPlayer(window.cionic);
+  monitorAPI.main()
+
+  document.getElementById('protoStartButton').addEventListener('click', startOrStopProtocol);
+  document.getElementById('camera-button').addEventListener('click', enableOrDisableCamera);
+	document.getElementById('calibrate-button').addEventListener('click', launchCalibration);
+
+  // see if we can record / update button style accordingly
+  cionicjs.GatewayUtils.checkRecordAvailability();
+});
     //=========================================================================
 
   </script>
