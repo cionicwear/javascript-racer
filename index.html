@@ -5,7 +5,7 @@
   <title>Javascript Racer</title>
   <script type="text/javascript">
     if (document.location.host.includes('app.cionic.com')) {
-        document.write("<base href='/racer/20/>'");
+        document.write("<base href='/racer/21/>'");
     }
   </script>
 
@@ -842,6 +842,17 @@
             $('#calibrate-button').removeClass("disabled");
         }
       }
+      else if (code === 3) {
+        const cameraState = cmdJson['state_camera'];
+        if (cameraState === cionicjs.CAMERA_STATES.OFF) {
+            cameraEnabled = false;
+            $('#camera-button').attr("src", "./assets/camera.svg");
+        }
+        else {
+            cameraEnabled = true;
+            $('#camera-button').attr("src", "./assets/camera-off.svg");
+        }
+    }
     }
   });
   // not implemented yet in WebRTC
@@ -856,10 +867,8 @@
 let cameraEnabled = false;
 enableOrDisableCamera = () => {
 	if (cameraEnabled) {
-		$('#camera-button').attr("src", "./assets/camera.svg");
 		cionicjs.GatewayUtils.setCameraState( cionicjs.CAMERA_STATES.OFF );
 	} else {
-		$('#camera-button').attr("src", "./assets/camera-off.svg");
 		cionicjs.GatewayUtils.setCameraState( cionicjs.CAMERA_STATES.ON  );
 	}
 	cameraEnabled = !cameraEnabled;
